@@ -1,0 +1,27 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>Authors List</h1>
+
+    {% if authors %}
+        <ul>
+            {% for author in authors %}
+                <li>
+                    <a href="{{ author.get_absolute_url }}">{{ author.last_name }}, {{ author.first_name }}</a>
+                    <p>{{ author.date_of_birth }} - {{ author.date_of_death }}</p>
+                    <h4><strong>Books:</strong></h4>
+
+                    {% for book in author.book_set.all %}
+                        <div style="display: flex;">
+                            <a href="{{ book.get_absolute_url }}"><strong>{{ book.title }}</strong></a>
+                            <p><strong>({{ book.id }})</strong></p>
+                        </div>
+                        <p>{{ book.summary }}</p>
+                    {% endfor %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No authors found in the library.</p>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>Добро пожаловать на главную страницу!</h1>
+
+    <section>
+        <h2>Статистика библиотеки</h2>
+        <ul>
+            <li><strong>Количество книг:</strong> {{ num_books }}</li>
+            <li><strong>Количество экземпляров книг:</strong> {{ num_instances }}</li>
+            <li><strong>Количество доступных экземпляров книг:</strong> {{ num_instances_available }}</li>
+            <li><strong>Количество авторов:</strong> {{ num_authors }}</li>
+            <li><strong>Количество жанров:</strong> {{ num_genres }}</li>
+            <li><strong>Количество книг с указанным словом "счастье":</strong> {{ num_books_with_word }}</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Посещение страницы</h2>
+        <p>
+            Вы посетили эту страницу {{ num_visits }}{% if num_visits == 1 %} раз{% else %} раз{% endif %}.
+        </p>
+    </section>
+{% endblock %}
+
+Найти еще

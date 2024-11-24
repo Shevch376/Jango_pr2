@@ -1,0 +1,17 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>Borrowed books</h1>
+
+    {% if object_list %}
+      <ul>
+        {% for book_instance in object_list %}
+          <li>{{ book_instance.book.title }} - {{ book_instance.borrower }}</li>
+        {% empty %}
+          <li>No borrowed books available.</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>There are no books borrowed.</p>
+    {% endif %}
+{% endblock %}
