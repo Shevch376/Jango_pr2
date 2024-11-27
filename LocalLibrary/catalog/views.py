@@ -1,11 +1,13 @@
 from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
+from django.views.generic import ListView
+
+from . import forms
 from .models import Book, Author, BookInstance, Genre
 from django.views import generic, View
 from django.contrib.auth import logout
 from django.shortcuts import redirect
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.shortcuts import get_object_or_404
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 import datetime
@@ -38,10 +40,6 @@ def index(request):
     num_visits = request.session.get('num_visits', 0)
     request.session['num_visits'] = num_visits + 1
 
-    def book_detail(request, book_id):
-        book = get_object_or_404(Book, id=book_id)
-        return render(request, 'book_detail.html', {'book': book})
-
     # Отрисовка HTML-шаблона index.html с данными внутри переменной контекста context
     return render(
         request,
@@ -67,7 +65,7 @@ class BookListView(generic.ListView):
 class BookDetailView(generic.DetailView):
     model = Book
     template_name = 'catalog/book_detail.html'
-    context_object_name = 'book_detail'
+    context_object_name = 'book'
 
 
 class AuthorListView(generic.ListView):
@@ -88,13 +86,15 @@ class BorrowedBooksListView(PermissionRequiredMixin, generic.ListView):
     permission_required = 'catalog.can_mark_returned'
 
     def get_queryset(self):
-        return BookInstance.objects.filter(status='borrowed')
+        # Возвращаем только книги, которые были взяты на прокат
+        return BookInstance.objects.filter(status='b')
 
 
 class MyView(LoginRequiredMixin, View):
-    login_url = '/login/'
+    login_url = 'login/'
     redirect_field_name = 'redirect_to'
 
+    # Поля для отображения и фильтрации
     list_display = ('book', 'status', 'borrower', 'due_back', 'id')
     list_filter = ('status', 'due_back')
 
@@ -109,8 +109,7 @@ class MyView(LoginRequiredMixin, View):
 
 
 from django.contrib.auth.decorators import permission_required
-
-from .forms import RenewBookForm
+from .forms import RenewBookForm, BookForm
 
 
 @permission_required('catalog.can_mark_returned')
@@ -122,7 +121,6 @@ def renew_book_librarian(request, pk):
 
     # If this is a POST request then process the Form data
     if request.method == 'POST':
-
         # Create a form instance and populate it with data from the request (binding):
         form = RenewBookForm(request.POST)
 
@@ -138,6 +136,77 @@ def renew_book_librarian(request, pk):
     # If this is a GET (or any other method) create the default form.
     else:
         proposed_renewal_date = datetime.date.today() + datetime.timedelta(weeks=3)
-        form = RenewBookForm(initial={'renewal_date': proposed_renewal_date, })
+        form = RenewBookForm(initial={'renewal_date': proposed_renewal_date})
 
     return render(request, 'catalog/book_renew_librarian.html', {'form': form, 'bookinst': book_inst})
+
+
+class AllBorrowedView(ListView):
+    model = BookInstance
+    template_name = 'catalog/all_borrowed.html'
+    context_object_name = 'books'
+
+    def get_queryset(self):
+        # Возврат всех взятых книг
+        return BookInstance.objects.filter(status='b')
+
+
+class RenewBookView(View):
+    def post(self, request, book_id):
+        book_instance = get_object_or_404(BookInstance, id=book_id)
+        renewal_date = request.POST.get('renewal_date')
+
+        # Изменение даты возврата
+        if renewal_date:
+            book_instance.due_back = timezone.datetime.strptime(renewal_date, '%Y-%m-%d').date()
+            book_instance.save()
+            # Перенаправить на список всех взятых книг после продления
+            return redirect('all-borrowed')
+
+        # В случае ошибки, вы можете обработать это по-своему
+        return redirect('all-borrowed')  # Или возвращать ошибку
+
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from .models import Author
+
+class AuthorCreate(CreateView):
+    model = Author
+    fields = '__all__'
+    initial={'date_of_death':'12/10/2016',}
+
+class AuthorUpdate(UpdateView):
+    model = Author
+    fields = ['first_name','last_name','date_of_birth','date_of_death']
+
+class AuthorDelete(DeleteView):
+    model = Author
+    success_url = reverse_lazy('authors')
+
+def create_book(request):
+    if request.method == 'POST':
+        form = BookForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('book_list')  # Измените на нужный вам URL
+    else:
+        form = BookForm()
+    return render(request, 'catalog/book_form.html', {'form': form})
+
+def update_book(request, pk):
+    book = get_object_or_404(Book, pk=pk)
+    if request.method == 'POST':
+        form = BookForm(request.POST, instance=book)
+        if form.is_valid():
+            form.save()
+            return redirect('book_detail', pk=book.pk)  # Измените на нужный вам URL
+    else:
+        form = BookForm(instance=book)
+    return render(request, 'catalog/book_form.html', {'form': form})
+
+def delete_book(request, pk):
+    book = get_object_or_404(Book, pk=pk)
+    if request.method == 'POST':
+        book.delete()
+        return redirect('book_list')  # Измените на нужный вам URL
+    return render(request, 'catalog/book_confirm_delete.html', {'book': book})

@@ -6,9 +6,21 @@
     {% if object_list %}
       <ul>
         {% for book_instance in object_list %}
-          <li>{{ book_instance.book.title }} - {{ book_instance.borrower }}</li>
-        {% empty %}
-          <li>No borrowed books available.</li>
+          <li>
+            <strong>Name</strong> {{ book_instance.book.title }}<br>
+            <strong>Borrowed:</strong> {{ book_instance.borrower }}<br>
+            {% if book_instance.status == 'b' %}
+              <strong>Due date:</strong> <span style="color: red;">{{ book_instance.due_back|date:"d-m-Y" }}</span><br>
+              <form action="{% url 'book_renew_librarian' book_instance.id %}" method="post">
+                {% csrf_token %}
+                <label for="renewal_date">Renewal date:</label>
+                <input type="date" id="renewal_date" name="renewal_date" required><br>
+                <button type="submit">submit</button>
+              </form>
+            {% else %}
+              <strong>Статус:</strong> (None)
+            {% endif %}
+          </li>
         {% endfor %}
       </ul>
     {% else %}

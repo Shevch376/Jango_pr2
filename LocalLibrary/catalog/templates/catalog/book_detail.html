@@ -1,16 +1,21 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-    <h1>Author: {{ author.last_name }}, {{ author.first_name }}</h1>
+    <h1>{{ book.title }}</h1>
+    <h2>Автор: {{ book.author.last_name }}, {{ book.author.first_name }}</h2>
 
-    <p>{{ author.date_of_birth }} - {{ author.date_of_death }}</p>
-    <h4><strong>Books:</strong></h4>
+    <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+    <p><strong>Описание:</strong> {{ book.summary }}</p>
+    <p><strong>Жанр:</strong> {{ book.genre.all|join:", " }}</p>
 
-    {% for book in author.book_set.all %}
-    <div class="display: flex">
-        <a href="{{ book.get_absolute_url }}"><strong>{{ book.title }}</strong></a><p><strong>({{ book.id }})</strong></p>
-    </div>
-    <p>{{ book.summary }}</p>
-    {% endfor %}
+    <h4><strong>Другие книги автора:</strong></h4>
+    <ul>
+        {% for other_book in book.author.book_set.all %}
+            <li>
+                <a href="{{ other_book.get_absolute_url }}"><strong>{{ other_book.title }}</strong></a>
+                <p><strong>({{ other_book.id }})</strong></p>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
 
-{% endblock %} %}

@@ -19,8 +19,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="HTML File" />
         <option value="Python Script" />
+        <option value="HTML File" />
       </list>
     </option>
   </component>
@@ -67,11 +67,11 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Shevch\Documents\GitHub\Jango_pr\LocalLibrary\catalog\templates\catalog" />
+      <recent name="C:\Users\Shevch\Documents\GitHub\Jango_pr\LocalLibrary\catalog\templates\registration" />
       <recent name="C:\Users\Shevch\Documents\GitHub\Jango_pr\LocalLibrary\catalog" />
       <recent name="C:\Users\Shevch\Documents\GitHub\Jango_pr\LocalLibrary\catalog\templates" />
       <recent name="C:\Users\Shevch\Documents\GitHub\Jango_pr" />
-      <recent name="C:\Users\Shevch\Documents\GitHub\Jango_pr\LocalLibrary" />
-      <recent name="C:\Users\Shevch\Documents\GitHub\Jango_pr\templates\registration" />
     </key>
   </component>
   <component name="SharedIndexes">

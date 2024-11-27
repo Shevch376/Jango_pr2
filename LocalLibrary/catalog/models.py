@@ -42,19 +42,28 @@ a_record.save()
 
 class Genre(models.Model):
     """Модель, представляющая жанр книги."""
-    name = models.CharField(max_length=200, help_text="Введите жанр книги (например, Научная фантастика, Французская поэзия и т.д.)")
+    name = models.CharField(max_length=200,
+                            help_text="Введите жанр книги (например, Научная фантастика, Французская поэзия и т.д.)")
 
     def __str__(self):
         """Строка для представления объекта модели."""
         return self.name
 
+
 class Book(models.Model):
     title = models.CharField(max_length=200)
     author = models.ForeignKey('Author', on_delete=models.SET_NULL, null=True)
     summary = models.TextField(max_length=1000, help_text="Введите краткое описание книги")
-    isbn = models.CharField('ISBN', max_length=13, help_text='13 символов <a href="https://www.isbn-international.org/content/what-isbn">номер ISBN</a>')
-    genre = models.ManyToManyField('Genre', help_text="Выберите жанр для этой книги")
+    isbn = models.CharField(
+        'ISBN',
+        max_length=13,
+        help_text='13 символов <a href="https://www.isbn-international.org/content/what-isbn">номер ISBN</a>'
+    )
+    genre = models.ManyToManyField(Genre, help_text="Выберите жанр для этой книги")
     copies = models.PositiveIntegerField(default=1)  # Количество экземпляров
+    is_borrowed = models.BooleanField(default=False)  # Статус выдачи книги
+    language = models.CharField(max_length=30, default='English')
+    publication_date = models.DateField(null=True, blank=True)
 
     def get_absolute_url(self):
         return reverse('book_detail', args=[str(self.id)])
@@ -65,24 +74,21 @@ class Book(models.Model):
     class Meta:
         permissions = [
             ("can_mark_returned", "Can mark book as returned"),
+            ("can_view_borrowed_books", "Can view borrowed books"),
         ]
 
     def __str__(self):
         """Строка для представления объекта модели."""
         return self.title
 
-    def get_absolute_url(self):
-        """Возвращает URL для доступа к конкретному экземпляру книги."""
-        return reverse('book_detail', args=[str(self.id)])
-
 
 class BookInstance(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text="Unique ID for this particular book across whole library")
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4,
+                          help_text="Unique ID for this particular book across whole library")
     book = models.ForeignKey('Book', on_delete=models.SET_NULL, null=True)
     imprint = models.CharField(max_length=200)
     due_back = models.DateField(null=True, blank=True)
     borrower = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-
 
     @property
     def is_overdue(self):
@@ -112,7 +118,7 @@ class Author(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     date_of_birth = models.DateField(null=True, blank=True)
-    date_of_death = models.DateField('Умер', null=True, blank=True)
+    date_of_death = models.DateField('death', null=True, blank=True)
 
     def get_absolute_url(self):
         """Возвращает URL для доступа к конкретному экземпляру автора."""
@@ -121,3 +127,4 @@ class Author(models.Model):
     def __str__(self):
         """Строка для представления объекта модели."""
         return '%s, %s' % (self.last_name, self.first_name)
+
